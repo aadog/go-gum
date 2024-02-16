@@ -40,10 +40,10 @@ func (p ProcessStruct) GetMainModule() *ModuleDetails {
 
 func (p ProcessStruct) EnumerateModules() []*ModuleDetails {
 	details := make([]*ModuleDetails, 0)
-	var cb = ffi.NewNativeCallback(func(ptr ffi.NativePointer, ptr2 ffi.NativePointer) int8 {
+	var cb = ffi.NewNativeCallback(func(ptr ffi.NativePointer, ptr2 ffi.NativePointer) bool {
 		details = append(details, ModuleDetailsWithPtr(ptr.Ptr()))
-		return 1
-	}, ffi.Tint8, []ffi.ArgTypeName{ffi.TPointer, ffi.TPointer}).MakeCall().MustGet()
+		return true
+	}, ffi.TBool, []ffi.ArgTypeName{ffi.TPointer, ffi.TPointer}).MakeCall().MustGet()
 	C.gum_process_enumerate_modules((*[0]byte)(unsafe.Pointer(cb)), (C.gpointer)(unsafe.Pointer(uintptr(0))))
 	return details
 }
