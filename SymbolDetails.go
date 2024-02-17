@@ -8,6 +8,7 @@ import (
 	"github.com/aadog/go-ffi"
 	"github.com/samber/lo"
 	"unsafe"
+	//"fmt"
 )
 
 type SymbolDetails struct {
@@ -21,6 +22,7 @@ type SymbolDetails struct {
 
 func SymbolDetailsWithNativePointer(ptr ffi.NativePointer) *SymbolDetails {
 	th := (*C.GumSymbolDetails)(ptr.Ptr())
+	//fmt.Println(th)
 	sym := &SymbolDetails{
 		Name:     GoString(th.name),
 		Address:  ffi.Ptr(uintptr(unsafe.Pointer(uintptr(th.address)))),

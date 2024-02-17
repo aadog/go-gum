@@ -43,16 +43,18 @@ func (p ProcessStruct) EnumerateModules() []*ModuleDetails {
 	var cb = ffi.NewNativeCallback(func(ptr ffi.NativePointer, ptr2 ffi.NativePointer) bool {
 		details = append(details, ModuleDetailsWithPtr(ptr.Ptr()))
 		return true
-	}, ffi.TBool, []ffi.ArgTypeName{ffi.TPointer, ffi.TPointer}).MakeCall().MustGet()
-	C.gum_process_enumerate_modules((*[0]byte)(unsafe.Pointer(cb)), (C.gpointer)(unsafe.Pointer(uintptr(0))))
+	}, ffi.TBool, []ffi.ArgTypeName{ffi.TPointer, ffi.TPointer})
+	defer cb.Free()
+	C.gum_process_enumerate_modules((*[0]byte)(unsafe.Pointer(cb.Ptr())), (C.gpointer)(unsafe.Pointer(uintptr(0))))
 	return details
 }
 func (p ProcessStruct) EnumerateThreads() []*ThreadDetails {
 	details := make([]*ThreadDetails, 0)
-	var cb = ffi.NewNativeCallback(func(ptr ffi.NativePointer, ptr2 ffi.NativePointer) int8 {
+	var cb = ffi.NewNativeCallback(func(ptr ffi.NativePointer, ptr2 ffi.NativePointer) bool {
 		details = append(details, ThreadDetailsWithPtr(ptr.Ptr()))
-		return 1
-	}, ffi.Tint8, []ffi.ArgTypeName{ffi.TPointer, ffi.TPointer}).MakeCall().MustGet()
+		return true
+	}, ffi.TBool, []ffi.ArgTypeName{ffi.TPointer, ffi.TPointer})
+	defer cb.Free()
 	C.gum_process_enumerate_threads((*[0]byte)(unsafe.Pointer(cb)), (C.gpointer)(unsafe.Pointer(uintptr(0))))
 	return details
 }
@@ -61,8 +63,9 @@ func (p ProcessStruct) EnumerateMallocRanges() []*RangeDetails {
 	var cb = ffi.NewNativeCallback(func(ptr ffi.NativePointer, ptr2 ffi.NativePointer) int {
 		details = append(details, RangeDetailsWithPtr(ptr.Ptr()))
 		return 1
-	}, ffi.Tint, []ffi.ArgTypeName{ffi.TPointer, ffi.TPointer}).MakeCall().MustGet()
-	C.gum_process_enumerate_malloc_ranges((*[0]byte)(unsafe.Pointer(cb)), (C.gpointer)(unsafe.Pointer(uintptr(0))))
+	}, ffi.Tint, []ffi.ArgTypeName{ffi.TPointer, ffi.TPointer})
+	defer cb.Free()
+	C.gum_process_enumerate_malloc_ranges((*[0]byte)(unsafe.Pointer(cb.Ptr())), (C.gpointer)(unsafe.Pointer(uintptr(0))))
 	return details
 }
 

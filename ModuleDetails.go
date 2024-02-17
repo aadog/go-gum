@@ -7,6 +7,7 @@ import "C"
 import (
 	"github.com/aadog/go-ffi"
 	"unsafe"
+	//"fmt"
 )
 
 type ModuleDetails struct {
@@ -29,21 +30,23 @@ func (m *ModuleDetails) FindSymbolByName(SymbolName string) ffi.NativePointer {
 
 func (m *ModuleDetails) EnumerateSymbols() []*SymbolDetails {
 	details := make([]*SymbolDetails, 0)
-	var cb = ffi.NewNativeCallback(func(ptr ffi.NativePointer, ptr2 ffi.NativePointer) int8 {
+	var cb = ffi.NewNativeCallback(func(ptr ffi.NativePointer, ptr2 ffi.NativePointer) bool {
 		detail := SymbolDetailsWithNativePointer(ptr)
 		details = append(details, detail)
-		return 1
-	}, ffi.Tint8, []ffi.ArgTypeName{ffi.TPointer, ffi.TPointer}).MakeCall().MustGet()
-	C.gum_module_enumerate_symbols(CString(m.Name), (*[0]byte)(unsafe.Pointer(cb)), (C.gpointer)(unsafe.Pointer(uintptr(0))))
+		return true
+	}, ffi.TBool, []ffi.ArgTypeName{ffi.TPointer, ffi.TPointer})
+	defer cb.Free()
+	C.gum_module_enumerate_symbols(CString(m.Name), (*[0]byte)(unsafe.Pointer(cb.Ptr())), (C.gpointer)(unsafe.Pointer(uintptr(0))))
 	return details
 }
 func (m *ModuleDetails) EnumerateExports() []*ExportDetails {
 	details := make([]*ExportDetails, 0)
-	var cb = ffi.NewNativeCallback(func(ptr ffi.NativePointer, ptr2 ffi.NativePointer) int {
+	var cb = ffi.NewNativeCallback(func(ptr ffi.NativePointer, ptr2 ffi.NativePointer) bool {
 		details = append(details, ExportDetailsWithPtr(ptr.Ptr()))
-		return 1
-	}, ffi.Tint, []ffi.ArgTypeName{ffi.TPointer, ffi.TPointer}).MakeCall().MustGet()
-	C.gum_module_enumerate_exports(CString(m.Name), (*[0]byte)(unsafe.Pointer(cb)), (C.gpointer)(unsafe.Pointer(uintptr(0))))
+		return true
+	}, ffi.TBool, []ffi.ArgTypeName{ffi.TPointer, ffi.TPointer})
+	defer cb.Free()
+	C.gum_module_enumerate_exports(CString(m.Name), (*[0]byte)(unsafe.Pointer(cb.Ptr())), (C.gpointer)(unsafe.Pointer(uintptr(0))))
 	return details
 }
 
